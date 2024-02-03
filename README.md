@@ -48,9 +48,9 @@ list of input files.
 ### Default handler programs
 
 ```sh
-DFMD_FOLDER_PROGRAM='echo %ARGS% | xargs -n1 xdg-open'
-DFMD_ITEMS_PROGRAM='echo %ARGS% | xargs -d " " -I {} sh -c '"'"'p="{}"; echo "${p%/*}"'"'"' | xargs -n1 xdg-open'
-DFMD_PROPERTIES_PROGRAM='echo %ARGS% | xargs -n1 xdg-open'
+DFMD_FOLDER_PROGRAM="echo %ARGS% | xargs -n1 xdg-open"
+DFMD_ITEMS_PROGRAM="echo %ARGS% | xargs -d ' ' -r -n1 dirname | xargs -n1 xdg-open"
+DFMD_PROPERTIES_PROGRAM="echo %ARGS% | xargs -n1 xdg-open"
 ```
 
 ## Autostart
@@ -64,4 +64,17 @@ Create a DBus service in
 [D-BUS Service]
 Name=org.freedesktop.FileManager1
 Exec=path/to/dfmd
+```
+
+## Overriding defaults in D-Bus service files
+
+Since D-Bus service files do not understand environment variables, the actions
+can be overridden using `env`:
+
+(Theoretical example where showing a file sends a desktop notification)
+
+```
+[D-BUS Service]
+Name=org.freedesktop.FileManager1
+Exec=env DFMD_ITEMS_PROGRAM="echo %ARGS% | xargs -d ' ' -r -n1 dirname | xargs -n1 notify-send 'File opened'" /usr/bin/dfmd
 ```

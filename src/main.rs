@@ -66,9 +66,9 @@ async fn main() -> eyre::Result<()> {
         .ok()
         .unwrap_or_else(|| r#"echo %ARGS% | xargs -n1 xdg-open"#.to_string());
 
-    let show_items_program = env::var("DFMD_ITEMS_PROGRAM").ok().unwrap_or_else(|| 
-        r#"echo %ARGS% | xargs -d " " -I {} sh -c 'p="{}"; echo "${p%/*}"' | xargs -n1 xdg-open"#.to_string(),
-    );
+    let show_items_program = env::var("DFMD_ITEMS_PROGRAM").ok().unwrap_or_else(|| {
+        r#"echo %ARGS% | xargs -d ' ' -r -n1 dirname | xargs -n1 xdg-open"#.to_string()
+    });
 
     let show_properties_program = env::var("DFMD_PROPERTIES_PROGRAM")
         .ok()
