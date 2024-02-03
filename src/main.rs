@@ -1,7 +1,7 @@
 use std::{env, future::pending};
 
 use tokio::process;
-use tracing::{error, info, Level};
+use tracing::{error, Level};
 use zbus::ConnectionBuilder;
 use zbus_macros::dbus_interface;
 
@@ -28,11 +28,11 @@ impl FileManager {
     }
 
     async fn show_items(&self, uris: Vec<String>, _startup_id: &str) {
-        let cmd = self.show_items_program.replace("%ARGS%", &uris.join(" "));
-        info!("Executing: {}", cmd);
-
         process::Command::new("sh")
-            .args(["-c", &cmd])
+            .args([
+                "-c",
+                &self.show_items_program.replace("%ARGS%", &uris.join(" ")),
+            ])
             .spawn()
             .map_err(|e| {
                 error!("Failed to run file manager: {}", e);
