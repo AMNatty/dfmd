@@ -1,6 +1,6 @@
-use std::{env, future::pending};
+use std::{env, future::pending, process::Stdio};
 
-use tokio::process;
+use tokio::{io::AsyncWriteExt, process};
 use tracing::{error, Level};
 use zbus::ConnectionBuilder;
 use zbus_macros::dbus_interface;
@@ -14,47 +14,78 @@ struct FileManager {
 #[dbus_interface(name = "org.freedesktop.FileManager1")]
 impl FileManager {
     async fn show_folders(&self, ref uris: Vec<String>, _startup_id: &str) {
-        process::Command::new("sh")
-            .args([
-                "-c",
-                &self.show_folder_program.replace("%ARGS%", &uris.join(" ")),
-            ])
+        let Ok(mut proc) = process::Command::new("sh")
+            .args(["-c", &self.show_folder_program])
+            .stdin(Stdio::piped())
             .spawn()
             .map_err(|e| {
                 error!("Failed to run file manager: {}", e);
                 e
             })
-            .ok();
+        else {
+            return;
+        };
+
+        let data = uris.join("\n");
+        let Some(mut stdin) = proc.stdin.take() else {
+            error!("No process stdin!");
+            return;
+        };
+        tokio::spawn(async move {
+            if let Err(e) = stdin.write_all(data.as_bytes()).await {
+                error!("Write error: {}", e)
+            }
+        });
     }
 
     async fn show_items(&self, uris: Vec<String>, _startup_id: &str) {
-        process::Command::new("sh")
-            .args([
-                "-c",
-                &self.show_items_program.replace("%ARGS%", &uris.join(" ")),
-            ])
+        let Ok(mut proc) = process::Command::new("sh")
+            .args(["-c", &self.show_items_program])
+            .stdin(Stdio::piped())
             .spawn()
             .map_err(|e| {
                 error!("Failed to run file manager: {}", e);
                 e
             })
-            .ok();
+        else {
+            return;
+        };
+
+        let data = uris.join("\n");
+        let Some(mut stdin) = proc.stdin.take() else {
+            error!("No process stdin!");
+            return;
+        };
+        tokio::spawn(async move {
+            if let Err(e) = stdin.write_all(data.as_bytes()).await {
+                error!("Write error: {}", e)
+            }
+        });
     }
 
     async fn show_item_properties(&self, ref uris: Vec<String>, _startup_id: &str) {
-        process::Command::new("sh")
-            .args([
-                "-c",
-                &self
-                    .show_properties_program
-                    .replace("%ARGS%", &uris.join(" ")),
-            ])
+        let Ok(mut proc) = process::Command::new("sh")
+            .args(["-c", &self.show_properties_program])
+            .stdin(Stdio::piped())
             .spawn()
             .map_err(|e| {
                 error!("Failed to run file manager: {}", e);
                 e
             })
-            .ok();
+        else {
+            return;
+        };
+
+        let data = uris.join("\n");
+        let Some(mut stdin) = proc.stdin.take() else {
+            error!("No process stdin!");
+            return;
+        };
+        tokio::spawn(async move {
+            if let Err(e) = stdin.write_all(data.as_bytes()).await {
+                error!("Write error: {}", e)
+            }
+        });
     }
 }
 
@@ -64,15 +95,15 @@ async fn main() -> eyre::Result<()> {
 
     let show_folder_program = env::var("DFMD_FOLDER_PROGRAM")
         .ok()
-        .unwrap_or_else(|| r#"echo %ARGS% | xargs -n1 xdg-open"#.to_string());
+        .unwrap_or_else(|| r#"xargs -r -n1 xdg-open"#.to_string());
 
-    let show_items_program = env::var("DFMD_ITEMS_PROGRAM").ok().unwrap_or_else(|| {
-        r#"echo %ARGS% | xargs -d ' ' -r -n1 dirname | xargs -n1 xdg-open"#.to_string()
-    });
+    let show_items_program = env::var("DFMD_ITEMS_PROGRAM")
+        .ok()
+        .unwrap_or_else(|| r#"xargs -r -n1 dirname | xargs -n1 xdg-open"#.to_string());
 
     let show_properties_program = env::var("DFMD_PROPERTIES_PROGRAM")
         .ok()
-        .unwrap_or_else(|| r#"echo %ARGS% | xargs -n1 xdg-open"#.to_string());
+        .unwrap_or_else(|| r#"xargs -r -n1 xdg-open"#.to_string());
 
     let _conn = ConnectionBuilder::session()?
         .name("org.freedesktop.FileManager1")?
