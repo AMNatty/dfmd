@@ -1,0 +1,18 @@
+[package]
+name = "dfmd"
+version = "0.1.0"
+license = "MIT OR GPL-3.0-only"
+edition = "2021"
+
+[dependencies]
+thiserror = { version = "1" }
+eyre = { version = "0.6" }
+tokio = { version = "1", features = ["rt", "process", "macros"] }
+zbus = { version = "3.14", features = ["tokio"] }
+zbus_macros = { version = "3.14" }
+clap = { version = "4.4", features = ["derive"] }
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3" }
+
+[profile.release]
+lto = true
