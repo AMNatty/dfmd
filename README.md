@@ -5,6 +5,16 @@ software.
 
 🦊
 
+## Quick installation
+
+AUR package: `dfmd-git`
+
+If some other handler takes precedence over this one, try copying the DBus
+service file into your user directory. Also make sure no other service is
+running while executing `dfmd`.
+
+`mkdir -p "${XDG_DATA_HOME:-"$HOME/.local/share"}/dbus-1/services" && cp /usr/share/dbus-1/services/sh.natty.FileManager1.service "${XDG_DATA_HOME:-"$HOME/.local/share"}/dbus-1/services/org.freedesktop.FileManager1.service"`
+
 ## Dependencies
 
 - DBus
