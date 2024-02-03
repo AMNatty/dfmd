@@ -13,7 +13,21 @@ If some other handler takes precedence over this one, try copying the DBus
 service file into your user directory. Also make sure no other service is
 running while executing `dfmd`.
 
-`mkdir -p "${XDG_DATA_HOME:-"$HOME/.local/share"}/dbus-1/services" && cp /usr/share/dbus-1/services/sh.natty.FileManager1.service "${XDG_DATA_HOME:-"$HOME/.local/share"}/dbus-1/services/org.freedesktop.FileManager1.service"`
+Bash et al.:
+
+```sh
+mkdir -p "${XDG_DATA_HOME:-"$HOME/.local/share"}/dbus-1/services"
+cp /usr/share/dbus-1/services/sh.natty.FileManager1.service "${XDG_DATA_HOME:-"$HOME/.local/share"}/dbus-1/services/org.freedesktop.FileManager1.service"
+```
+
+Fish:
+
+```sh
+# Fallback universal variable in case XDG_DATA_HOME is not set
+set -U XDG_DATA_HOME ~/.local/share
+mkdir -p "$XDG_DATA_HOME/dbus-1/services"
+cp /usr/share/dbus-1/services/sh.natty.FileManager1.service "$XDG_DATA_HOME/dbus-1/services/org.freedesktop.FileManager1.service"
+```
 
 ## Dependencies
 
@@ -22,7 +36,7 @@ running while executing `dfmd`.
 
 ## Building
 
-```
+```sh
 cargo build --release
 ```
 
@@ -33,10 +47,10 @@ list of input files.
 
 ### Default handler programs
 
-```
-DFMD_FOLDER_PROGRAM: echo %ARGS% | xargs -n1 xdg-open
-DFMD_ITEMS_PROGRAM: echo %ARGS% | xargs -d " " -I {} sh -c 'p="{}"; echo "${p%/*}"' | xargs -n1 xdg-open
-DFMD_PROPERTIES_PROGRAM: echo %ARGS% | xargs -n1 xdg-open
+```sh
+DFMD_FOLDER_PROGRAM='echo %ARGS% | xargs -n1 xdg-open'
+DFMD_ITEMS_PROGRAM='echo %ARGS% | xargs -d " " -I {} sh -c '"'"'p="{}"; echo "${p%/*}"'"'"' | xargs -n1 xdg-open'
+DFMD_PROPERTIES_PROGRAM='echo %ARGS% | xargs -n1 xdg-open'
 ```
 
 ## Autostart
